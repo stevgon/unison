@@ -1,148 +1,169 @@
-// Home page of the app, Currently a demo page for demonstration.
-// Please rewrite this file to implement your own logic. Do not replace or delete it, simply rewrite this HomePage.tsx file.
-import { useEffect } from 'react'
-import { Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { Toaster, toast } from '@/components/ui/sonner'
-import { create } from 'zustand'
-import { useShallow } from 'zustand/react/shallow'
-import { AppLayout } from '@/components/layout/AppLayout'
-
-// Timer store: independent slice with a clear, minimal API, for demonstration
-type TimerState = {
-  isRunning: boolean;
-  elapsedMs: number;
-  start: () => void;
-  pause: () => void;
-  reset: () => void;
-  tick: (deltaMs: number) => void;
-}
-
-const useTimerStore = create<TimerState>((set) => ({
-  isRunning: false,
-  elapsedMs: 0,
-  start: () => set({ isRunning: true }),
-  pause: () => set({ isRunning: false }),
-  reset: () => set({ elapsedMs: 0, isRunning: false }),
-  tick: (deltaMs) => set((s) => ({ elapsedMs: s.elapsedMs + deltaMs })),
-}))
-
-// Counter store: separate slice to showcase multiple stores without coupling
-type CounterState = {
-  count: number;
-  inc: () => void;
-  reset: () => void;
-}
-
-const useCounterStore = create<CounterState>((set) => ({
-  count: 0,
-  inc: () => set((s) => ({ count: s.count + 1 })),
-  reset: () => set({ count: 0 }),
-}))
-
-function formatDuration(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  const m = Math.floor(total / 60)
-  const s = total % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-export function HomePage() {
-  // Select only what is needed to avoid unnecessary re-renders
-  const { isRunning, elapsedMs } = useTimerStore(
-    useShallow((s) => ({ isRunning: s.isRunning, elapsedMs: s.elapsedMs })),
-  )
-  const start = useTimerStore((s) => s.start)
-  const pause = useTimerStore((s) => s.pause)
-  const resetTimer = useTimerStore((s) => s.reset)
-  const count = useCounterStore((s) => s.count)
-  const inc = useCounterStore((s) => s.inc)
-  const resetCount = useCounterStore((s) => s.reset)
-
-  // Drive the timer only while running; avoid update-depth issues with a scoped RAF
+import React, { useState, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Toaster, toast } from '@/components/ui/sonner';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { MessageCard } from '@/components/MessageCard';
+import type { Message, ApiResponse } from '@shared/types';
+import { AnimatePresence, motion } from 'framer-motion';
+import { RefreshCcw } from 'lucide-react';
+export function HomePage(): JSX.Element {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessageText, setNewMessageText] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isPosting, setIsPosting] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const fetchMessages = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/messages');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: ApiResponse<Message[]> = await response.json();
+      if (data.success && data.data) {
+        setMessages(data.data);
+      } else {
+        setError(data.error || 'Failed to fetch messages.');
+        toast.error('Failed to load messages', { description: data.error || 'Please try again.' });
+      }
+    } catch (e) {
+      console.error('Error fetching messages:', e);
+      setError(e instanceof Error ? e.message : 'An unknown error occurred.');
+      toast.error('Network error', { description: 'Could not connect to the server.' });
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
   useEffect(() => {
-    if (!isRunning) return
-    let raf = 0
-    let last = performance.now()
-    const loop = () => {
-      const now = performance.now()
-      const delta = now - last
-      last = now
-      // Read store API directly to keep effect deps minimal and stable
-      useTimerStore.getState().tick(delta)
-      raf = requestAnimationFrame(loop)
+    fetchMessages();
+  }, [fetchMessages]);
+  const handlePostMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMessageText.trim() === '') {
+      toast.warning('Message cannot be empty', { description: 'Please write something before posting.' });
+      return;
     }
-    raf = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(raf)
-  }, [isRunning])
-
-  const onPleaseWait = () => {
-    inc()
-    if (!isRunning) {
-      start()
-      toast.success('Building your app…', {
-        description: 'Hang tight, we\'re setting everything up.',
-      })
-    } else {
-      pause()
-      toast.info('Taking a short pause', {
-        description: 'We\'ll continue shortly.',
-      })
+    setIsPosting(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: newMessageText }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: ApiResponse<Message[]> = await response.json();
+      if (data.success && data.data) {
+        setMessages(data.data);
+        setNewMessageText('');
+        toast.success('Message posted!', { description: 'Your message is now live.' });
+      } else {
+        setError(data.error || 'Failed to post message.');
+        toast.error('Failed to post message', { description: data.error || 'Please try again.' });
+      }
+    } catch (e) {
+      console.error('Error posting message:', e);
+      setError(e instanceof Error ? e.message : 'An unknown error occurred.');
+      toast.error('Network error', { description: 'Could not post message.' });
+    } finally {
+      setIsPosting(false);
     }
-  }
-
-  const formatted = formatDuration(elapsedMs)
-
+  };
   return (
-    <AppLayout>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 overflow-hidden relative">
-        <ThemeToggle />
-        <div className="absolute inset-0 bg-gradient-rainbow opacity-10 dark:opacity-20 pointer-events-none" />
-        <div className="text-center space-y-8 relative z-10 animate-fade-in">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-primary floating">
-              <Sparkles className="w-8 h-8 text-white rotating" />
-            </div>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-            Creating your <span className="text-gradient">app</span>
+    <AppLayout container className="min-h-screen">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 space-y-12">
+        <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
+        {/* Header */}
+        <header className="text-center space-y-4 animate-fade-in">
+          <h1 className="text-4xl font-bold text-foreground leading-tight">
+            Unison
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty">
-            Your application would be ready soon.
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto text-pretty">
+            A serene, anonymous space for a single topic discussion.
           </p>
-          <div className="flex justify-center gap-4">
-            <Button 
-              size="lg"
-              onClick={onPleaseWait}
-              className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200"
-              aria-live="polite"
-            >
-              Please Wait
-            </Button>
-          </div>
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-            <div>
-              Time elapsed: <span className="font-medium tabular-nums text-foreground">{formatted}</span>
+        </header>
+        {/* Message Submission Form */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+          className="space-y-6"
+        >
+          <form onSubmit={handlePostMessage} className="space-y-4">
+            <Textarea
+              placeholder="What's on your mind? Share your thoughts anonymously..."
+              value={newMessageText}
+              onChange={(e) => setNewMessageText(e.target.value)}
+              rows={4}
+              className="w-full bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-all duration-200"
+              disabled={isPosting}
+            />
+            <div className="flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={fetchMessages}
+                disabled={isLoading || isPosting}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200"
+              >
+                <RefreshCcw className="h-4 w-4" />
+                Refresh
+              </Button>
+              <Button
+                type="submit"
+                className="bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 active:scale-95"
+                disabled={isPosting || newMessageText.trim() === ''}
+              >
+                {isPosting ? 'Posting...' : 'Post Message'}
+              </Button>
             </div>
-            <div>
-              Coins: <span className="font-medium tabular-nums text-foreground">{count}</span>
+          </form>
+        </motion.section>
+        {/* Message List */}
+        <section className="space-y-6">
+          {isLoading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+              <p className="ml-4 text-muted-foreground">Loading messages...</p>
             </div>
-          </div>
-          <div className="flex justify-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => { resetTimer(); resetCount(); toast('Reset complete') }}>
-              Reset
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => { inc(); toast('Coin added') }}>
-              Add Coin
-            </Button>
-          </div>
-        </div>
-        <footer className="absolute bottom-8 text-center text-muted-foreground/80">
-          <p>Powered by Cloudflare</p>
+          )}
+          {error && (
+            <div className="text-center py-12 text-destructive">
+              <p className="font-semibold">Error: {error}</p>
+              <p className="text-sm text-muted-foreground">Please try refreshing the page.</p>
+            </div>
+          )}
+          {!isLoading && !error && messages.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <p className="text-lg font-semibold">No messages yet!</p>
+              <p className="text-sm">Be the first to share your thoughts.</p>
+            </div>
+          )}
+          <AnimatePresence initial={false}>
+            {!isLoading && !error && messages.length > 0 && (
+              <motion.div
+                layout
+                className="space-y-6"
+              >
+                {messages.map((message) => (
+                  <MessageCard key={message.id} message={message} />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
+        <footer className="text-center text-muted-foreground/80 pt-12">
+          <p>Built with ❤️ at Cloudflare</p>
         </footer>
         <Toaster richColors closeButton />
       </div>
     </AppLayout>
-  )
+  );
 }

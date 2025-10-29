@@ -1,13 +1,12 @@
 import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { formatDistanceToNowStrict } from 'date-fns';
 import type { Message } from '@shared/types';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils'; // Import cn utility for conditional class names
 interface MessageCardProps {
   message: Message;
-  isCurrentUser: boolean; // New prop to determine message origin
 }
-export function MessageCard({ message, isCurrentUser }: MessageCardProps): JSX.Element {
+export function MessageCard({ message }: MessageCardProps): JSX.Element {
   const formattedTimestamp = React.useMemo(() => {
     try {
       return formatDistanceToNowStrict(new Date(message.timestamp), { addSuffix: true });
@@ -23,26 +22,19 @@ export function MessageCard({ message, isCurrentUser }: MessageCardProps): JSX.E
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className={cn(
-        "w-full flex hover:shadow-md transition-shadow duration-200", // Added hover effect
-        isCurrentUser ? "justify-end" : "justify-start"
-      )} // Conditionally align messages
+      whileHover={{ scale: 1.01, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+      className="w-full"
     >
-      <div
-        className={cn(
-          "p-3 rounded-lg shadow-sm max-w-[85%]", // Adjusted padding from p-4 to p-3, changed rounded-xl to rounded-lg
-          isCurrentUser
-            ? "bg-primary/10 text-foreground rounded-br-none" // Subtle background for current user, rounded-br-none for bubble shape
-            : "bg-secondary text-foreground rounded-bl-none" // Default secondary background for others, rounded-bl-none for bubble shape
-        )}
-      >
-        <p className="text-base text-foreground font-medium leading-relaxed text-pretty">
-          {message.text}
-        </p>
-        <p className={cn("text-sm text-muted-foreground mt-1", isCurrentUser ? "text-right" : "text-left")}> {/* Adjusted margin-top from mt-2 to mt-1 */}
-          {formattedTimestamp}
-        </p>
-      </div>
+      <Card className="border-gray-200 hover:shadow-md transition-shadow duration-200 ease-in-out">
+        <CardContent className="p-6 space-y-3">
+          <p className="text-base text-foreground font-medium leading-relaxed text-pretty">
+            {message.text}
+          </p>
+          <p className="text-sm text-muted-foreground text-right">
+            {formattedTimestamp}
+          </p>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 }
