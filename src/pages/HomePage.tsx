@@ -102,7 +102,7 @@ export function HomePage(): JSX.Element {
               value={newMessageText}
               onChange={(e) => setNewMessageText(e.target.value)}
               rows={4}
-              className="w-full bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-all duration-200"
+              className="w-full bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200"
               disabled={isPosting}
             />
             <div className="flex justify-end gap-3">
@@ -118,7 +118,7 @@ export function HomePage(): JSX.Element {
               </Button>
               <Button
                 type="submit"
-                className="bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 active:scale-95"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95"
                 disabled={isPosting || newMessageText.trim() === ''}
               >
                 {isPosting ? 'Posting...' : 'Post Message'}
@@ -130,7 +130,7 @@ export function HomePage(): JSX.Element {
         <section className="space-y-6">
           {isLoading && (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               <p className="ml-4 text-muted-foreground">Loading messages...</p>
             </div>
           )}
