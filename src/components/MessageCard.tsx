@@ -25,7 +25,7 @@ export function MessageCard({ message }: MessageCardProps): JSX.Element {
       whileHover={{ scale: 1.01, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
       className="w-full"
     >
-      <Card className="border-gray-200 hover:shadow-md transition-shadow duration-200 ease-in-out">
+      <Card className="border hover:shadow-md transition-shadow duration-200 ease-in-out">
         <CardContent className="p-6 space-y-3">
           <p className="text-base text-foreground font-medium leading-relaxed text-pretty">
             {message.text}
