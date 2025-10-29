@@ -1,7 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import type { DemoItem, Message } from '@shared/types';
 import { MOCK_ITEMS } from '@shared/mock-data';
-import { v4 as uuidv4 } from 'uuid'; // Using uuid for unique message IDs
 // **DO NOT MODIFY THE CLASS NAME**
 export class GlobalDurableObject extends DurableObject {
     async getCounterValue(): Promise<number> {
@@ -61,7 +60,7 @@ export class GlobalDurableObject extends DurableObject {
     async addMessage(text: string): Promise<Message[]> {
       const messages = await this.getMessages();
       const newMessage: Message = {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         text: text,
         timestamp: new Date().toISOString(),
       };
