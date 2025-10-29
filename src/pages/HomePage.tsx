@@ -78,7 +78,7 @@ export function HomePage(): JSX.Element {
   };
   return (
     <AppLayout container className="min-h-screen">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 space-y-12">
+      <div className="px-4 sm:px-6 lg:px-8 py-12 md:py-16 space-y-12">
         <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
         {/* Header */}
         <header className="text-center space-y-4 animate-fade-in">
