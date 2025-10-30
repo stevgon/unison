@@ -5,7 +5,6 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { MessageCard } from '@/components/MessageCard';
-import { TypingIndicator } from '@/components/TypingIndicator';
 import type { Message, ApiResponse } from '@shared/types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { RefreshCcw, Send } from 'lucide-react';
@@ -25,8 +24,6 @@ export function HomePage(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isPosting, setIsPosting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [isTyping, setIsTyping] = useState<boolean>(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
   const mockUserId = useRef<string>(getMockUserId()); // Persistent mock user ID for the session
   const fetchMessages = useCallback(async () => {
@@ -55,28 +52,6 @@ export function HomePage(): JSX.Element {
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
-  // Effect to manage typing indicator
-  useEffect(() => {
-    if (newMessageText.length > 0) {
-      setIsTyping(true);
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-      typingTimeoutRef.current = setTimeout(() => {
-        setIsTyping(false);
-      }, 3000); // Simulate typing for 3 seconds
-    } else {
-      setIsTyping(false);
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    }
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, [newMessageText]);
   // Effect for auto-scrolling to the bottom of the message list
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -233,15 +208,6 @@ export function HomePage(): JSX.Element {
               </form>
             </motion.div>
           </Card>
-          <AnimatePresence>
-            {/*
-              Typing Indicator Explanation:
-              This animation appears when the user starts typing a message in the input field.
-              It simulates real-time input, providing a visual cue that a message is being composed.
-              The indicator disappears automatically a few seconds after typing stops.
-            */}
-            {isTyping && <TypingIndicator />}
-          </AnimatePresence>
         </motion.section>
         {/* Footer - with dedicated vertical padding */}
         <footer className="text-center text-muted-foreground/80 pt-4 pb-8 px-4 sm:px-6 lg:px-8">
