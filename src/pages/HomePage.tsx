@@ -122,13 +122,17 @@ export function HomePage(): JSX.Element {
   return (
     <AppLayout container className="min-h-screen">
       {/* The main content wrapper, now constrained to max-w-3xl and centered */}
-      <div className="max-w-3xl mx-auto space-y-12 py-12 md:py-16"> {/* Added vertical spacing */}
+      <div className="max-w-3xl mx-auto space-y-12 py-12 md:py-16">
         <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
         {/* Header */}
         <header className="text-center space-y-4 animate-fade-in">
           <h1 className="text-4xl font-bold text-foreground leading-tight">
             Unison
           </h1>
+          {/* Dedicated topic display */}
+          <div className="text-2xl font-semibold text-primary">
+            Topic: Anonymous Thoughts
+          </div>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto text-pretty">
             A serene, anonymous space for a single topic discussion.
           </p>
@@ -141,49 +145,55 @@ export function HomePage(): JSX.Element {
           className="space-y-4"
         >
           <Card className="p-4">
-            <form onSubmit={handlePostMessage} className="space-y-4">
-              <Textarea
-                placeholder="What's on your mind? Share your thoughts anonymously..."
-                value={newMessageText}
-                onChange={(e) => setNewMessageText(e.target.value)}
-                rows={4}
-                className="w-full bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200"
-                disabled={isPosting}
-                aria-label="Message content" // ARIA label for accessibility
-              />
-              <div className="flex justify-between items-center">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={fetchMessages}
-                  disabled={isLoading || isPosting}
-                  className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-                  aria-label="Refresh messages" // ARIA label for accessibility
-                >
-                  <RefreshCcw className="h-5 w-5" />
-                  <span className="sr-only">Refresh Messages</span>
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95 flex items-center gap-2"
-                  disabled={isPosting || newMessageText.trim() === ''}
-                  aria-label="Send message" // ARIA label for accessibility
-                >
-                  {isPosting ? (
-                    <>
-                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></span>
-                      <span>Sending...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4" />
-                      <span>Send</span>
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
+            <motion.div // Added motion.div wrapper for animation
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+            >
+              <form onSubmit={handlePostMessage} className="space-y-4">
+                <Textarea
+                  placeholder="What's on your mind? Share your thoughts anonymously..."
+                  value={newMessageText}
+                  onChange={(e) => setNewMessageText(e.target.value)}
+                  rows={4}
+                  className="w-full bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200"
+                  disabled={isPosting}
+                  aria-label="Message content" // ARIA label for accessibility
+                />
+                <div className="flex justify-between items-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={fetchMessages}
+                    disabled={isLoading || isPosting}
+                    className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                    aria-label="Refresh messages" // ARIA label for accessibility
+                  >
+                    <RefreshCcw className="h-5 w-5" />
+                    <span className="sr-only">Refresh Messages</span>
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95 flex items-center gap-2"
+                    disabled={isPosting || newMessageText.trim() === ''}
+                    aria-label="Send message" // ARIA label for accessibility
+                  >
+                    {isPosting ? (
+                      <>
+                        <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></span>
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        <span>Send</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
           </Card>
           <AnimatePresence>
             {isTyping && <TypingIndicator />}

@@ -1,14 +1,16 @@
 import React from 'react';
 import { motion, Variants } from 'framer-motion'; // Import Variants type
 export function TypingIndicator(): JSX.Element {
-  const dotVariants: Variants = { // Explicitly type as Variants
+  // Define a base variant for the dot animation
+  const dotBaseVariants: Variants = {
+    initial: { y: "0%" },
     animate: {
       y: ["0%", "-50%", "0%"],
       transition: {
         duration: 1.5,
         ease: "easeInOut",
         repeat: Infinity,
-        repeatType: "loop", // This is the correct literal string for RepeatType
+        repeatType: "loop",
       },
     },
   };
@@ -23,20 +25,23 @@ export function TypingIndicator(): JSX.Element {
     >
       <motion.span
         className="bg-muted-foreground rounded-full h-2 w-2"
-        variants={dotVariants}
+        variants={dotBaseVariants}
+        initial="initial"
         animate="animate"
       />
       <motion.span
         className="bg-muted-foreground rounded-full h-2 w-2"
-        variants={dotVariants}
+        variants={dotBaseVariants}
+        initial="initial"
         animate="animate"
-        transition={{ ...dotVariants.animate.transition, delay: 0.2 }}
+        transition={{ ...dotBaseVariants.animate.transition, delay: 0.2 }} // Apply delay directly to the motion.span's transition prop
       />
       <motion.span
         className="bg-muted-foreground rounded-full h-2 w-2"
-        variants={dotVariants}
+        variants={dotBaseVariants}
+        initial="initial"
         animate="animate"
-        transition={{ ...dotVariants.animate.transition, delay: 0.4 }}
+        transition={{ ...dotBaseVariants.animate.transition, delay: 0.4 }} // Apply delay directly to the motion.span's transition prop
       />
     </motion.div>
   );
