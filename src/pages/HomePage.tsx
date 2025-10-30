@@ -78,7 +78,8 @@ export function HomePage(): JSX.Element {
   };
   return (
     <AppLayout container className="min-h-screen">
-      <div className="px-4 sm:px-6 lg:px-8 py-12 md:py-16 space-y-12">
+      {/* The main content wrapper, now constrained to max-w-3xl and centered */}
+      <div className="max-w-3xl mx-auto space-y-12">
         <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
         {/* Header */}
         <header className="text-center space-y-4 animate-fade-in">
@@ -160,7 +161,7 @@ export function HomePage(): JSX.Element {
           </AnimatePresence>
         </section>
         <footer className="text-center text-muted-foreground/80 pt-12">
-          <p>Built with ❤️ at Cloudflare</p>
+          <p>Built with ❤�� at Cloudflare</p>
         </footer>
         <Toaster richColors closeButton />
       </div>
