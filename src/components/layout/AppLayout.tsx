@@ -10,7 +10,7 @@ export function AppLayout({ children, container = false, className, contentClass
   return (
     <div className={cn("min-h-screen flex flex-col", className)}>
       {container ? (
-        <div className={cn("max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full w-full", contentClassName)}>{children}</div>
+        <div className={cn("max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col w-full", contentClassName)}>{children}</div>
       ) : (
         children
       )}
