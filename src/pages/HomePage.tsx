@@ -104,17 +104,15 @@ export function HomePage(): JSX.Element {
   return (
     <AppLayout container className="min-h-screen">
       {/* The main content wrapper, now constrained to max-w-3xl and centered, with flex column layout */}
-      <div className="max-w-3xl mx-auto h-full flex flex-col">
+      <div className="max-w-3xl mx-auto h-full w-full flex flex-col">
         {/* Header - with dedicated vertical padding */}
-        <header className="text-center space-y-4 animate-fade-in py-8 md:py-10 lg:py-12 relative"> {/* Added relative for ThemeToggle positioning */}
+        <header className="text-center space-y-2 animate-fade-in py-8 md:py-10 lg:py-12 relative"> {/* Adjusted space-y and py- */}
           <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" /> {/* Integrated ThemeToggle */}
           <h1 className="text-4xl font-bold text-foreground leading-tight">
             Unison
           </h1>
           {/* Removed: Dedicated topic display */}
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto text-pretty">
-            A serene, anonymous space for a single topic discussion.
-          </p>
+          {/* Removed: Descriptive p tag for minimalist header */}
         </header>
         {/* Message List - now flex-grow and scrollable */}
         <section className="flex-grow overflow-y-auto space-y-6 px-4 sm:px-6 lg:px-8 py-4">
@@ -167,48 +165,47 @@ export function HomePage(): JSX.Element {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
             >
-              <form onSubmit={handlePostMessage} className="space-y-4">
+              <form onSubmit={handlePostMessage} className="flex items-end gap-2"> {/* Changed to flex items-end gap-2 */}
                 <Textarea
                   placeholder="What's on your mind? Share your thoughts anonymously..."
                   value={newMessageText}
                   onChange={(e) => setNewMessageText(e.target.value)}
-                  rows={4}
-                  className="w-full bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200"
+                  rows={1} // Start with 1 row
+                  className="flex-grow min-h-[2.5rem] max-h-[10rem] overflow-y-auto resize-none bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200" // Dynamic height, inline
                   disabled={isPosting}
                   aria-label="Message content" // ARIA label for accessibility
                 />
-                <div className="flex justify-between items-center">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => fetchMessages(setIsLoading, setError, setMessages, toast)}
-                    disabled={isLoading || isPosting}
-                    className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-                    aria-label="Refresh messages" // ARIA label for accessibility
-                  >
-                    <RefreshCcw className="h-5 w-5" />
-                    <span className="sr-only">Refresh Messages</span>
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95 flex items-center gap-2"
-                    disabled={isPosting || newMessageText.trim() === ''}
-                    aria-label="Send message" // ARIA label for accessibility
-                  >
-                    {isPosting ? (
-                      <>
-                        <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></span>
-                        <span>Sending...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4" />
-                        <span>Send</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <Button
+                  type="submit"
+                  className="h-[2.5rem] bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95 flex items-center gap-2" // Fixed height
+                  disabled={isPosting || newMessageText.trim() === ''}
+                  aria-label="Send message" // ARIA label for accessibility
+                >
+                  {isPosting ? (
+                    <>
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></span>
+                      <span className="sr-only sm:not-sr-only">Sending...</span> {/* Conditionally hide "Sending..." text */}
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      <span className="sr-only sm:not-sr-only">Send</span> {/* Conditionally hide "Send" text */}
+                    </>
+                  )}
+                </Button>
+                {/* Moved refresh button to the left of the form for better visual balance */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => fetchMessages(setIsLoading, setError, setMessages, toast)}
+                  disabled={isLoading || isPosting}
+                  className="text-muted-foreground hover:text-foreground transition-colors duration-200 h-[2.5rem] w-[2.5rem]" // Fixed height and width
+                  aria-label="Refresh messages" // ARIA label for accessibility
+                >
+                  <RefreshCcw className="h-5 w-5" />
+                  <span className="sr-only">Refresh Messages</span>
+                </Button>
               </form>
             </motion.div>
           </Card>

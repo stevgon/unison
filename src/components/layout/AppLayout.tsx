@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils"; // Import cn utility
 type AppLayoutProps = {
   children: React.ReactNode;
   container?: boolean;
@@ -7,9 +8,9 @@ type AppLayoutProps = {
 };
 export function AppLayout({ children, container = false, className, contentClassName }: AppLayoutProps): JSX.Element {
   return (
-    <div className={className}>
+    <div className={cn("min-h-screen flex flex-col", className)}>
       {container ? (
-        <div className={"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12" + (contentClassName ? ` ${contentClassName}` : "")}>{children}</div>
+        <div className={cn("max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full w-full", contentClassName)}>{children}</div>
       ) : (
         children
       )}
