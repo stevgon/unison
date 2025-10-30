@@ -1,14 +1,14 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion'; // Import Variants type
 export function TypingIndicator(): JSX.Element {
-  const dotVariants = {
+  const dotVariants: Variants = { // Explicitly type as Variants
     animate: {
       y: ["0%", "-50%", "0%"],
       transition: {
         duration: 1.5,
         ease: "easeInOut",
         repeat: Infinity,
-        repeatType: "loop",
+        repeatType: "loop", // This is the correct literal string for RepeatType
       },
     },
   };

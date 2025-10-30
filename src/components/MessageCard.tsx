@@ -23,7 +23,10 @@ export function MessageCard({ message, isCurrentUser }: MessageCardProps): JSX.E
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className={cn("w-full flex", isCurrentUser ? "justify-end" : "justify-start")} // Conditionally align messages
+      className={cn(
+        "w-full flex hover:shadow-md transition-shadow duration-200", // Added hover effect
+        isCurrentUser ? "justify-end" : "justify-start"
+      )} // Conditionally align messages
     >
       <div
         className={cn(

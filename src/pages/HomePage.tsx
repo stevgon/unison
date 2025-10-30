@@ -5,19 +5,30 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { MessageCard } from '@/components/MessageCard';
-import { TypingIndicator } from '@/components/TypingIndicator'; // Import TypingIndicator
+import { TypingIndicator } from '@/components/TypingIndicator';
 import type { Message, ApiResponse } from '@shared/types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { RefreshCcw, Send } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+// Helper to generate a consistent mock user ID
+const getMockUserId = (): string => {
+  let userId = localStorage.getItem('mockUserId');
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem('mockUserId', userId);
+  }
+  return userId;
+};
 export function HomePage(): JSX.Element {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessageText, setNewMessageText] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isPosting, setIsPosting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [isTyping, setIsTyping] = useState<boolean>(false); // New state for typing indicator
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref to manage typing timeout
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
+  const mockUserId = useRef<string>(getMockUserId()); // Persistent mock user ID for the session
   const fetchMessages = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -66,6 +77,12 @@ export function HomePage(): JSX.Element {
       }
     };
   }, [newMessageText]);
+  // Effect for auto-scrolling to the bottom of the message list
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]); // Scroll whenever messages update
   const handlePostMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newMessageText.trim() === '') {
@@ -80,7 +97,7 @@ export function HomePage(): JSX.Element {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: newMessageText }),
+        body: JSON.stringify({ text: newMessageText, mockSenderId: mockUserId.current }), // Pass mockSenderId
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -105,7 +122,7 @@ export function HomePage(): JSX.Element {
   return (
     <AppLayout container className="min-h-screen">
       {/* The main content wrapper, now constrained to max-w-3xl and centered */}
-      <div className="max-w-3xl mx-auto space-y-12">
+      <div className="max-w-3xl mx-auto space-y-12 py-12 md:py-16"> {/* Added vertical spacing */}
         <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
         {/* Header */}
         <header className="text-center space-y-4 animate-fade-in">
@@ -169,7 +186,7 @@ export function HomePage(): JSX.Element {
             </form>
           </Card>
           <AnimatePresence>
-            {isTyping && <TypingIndicator />} {/* Conditionally render TypingIndicator */}
+            {isTyping && <TypingIndicator />}
           </AnimatePresence>
         </motion.section>
         {/* Message List */}
@@ -198,13 +215,14 @@ export function HomePage(): JSX.Element {
                 layout
                 className="space-y-4"
               >
-                {messages.map((message, index) => (
+                {messages.map((message) => (
                   <MessageCard
                     key={message.id}
                     message={message}
-                    isCurrentUser={index % 2 === 0} // Mocking current user for demonstration
+                    isCurrentUser={message.mockSenderId === mockUserId.current} // Use persistent mockUserId
                   />
                 ))}
+                <div ref={messagesEndRef} /> {/* Element to scroll into view */}
               </motion.div>
             )}
           </AnimatePresence>
