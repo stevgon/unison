@@ -18,6 +18,36 @@ const getMockUserId = (): string => {
   }
   return userId;
 };
+// Standalone async function to fetch messages, accepting state setters and toast as arguments
+async function fetchMessages(
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
+  toast: typeof import('@/components/ui/sonner').toast
+) {
+  setIsLoading(true);
+  setError(null);
+  try {
+    const response = await fetch('/api/messages');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data: ApiResponse<Message[]> = await response.json();
+    if (data.success && data.data) {
+      setMessages(data.data);
+    } else {
+      setError(data.error || 'Failed to fetch messages.');
+      toast.error('Failed to load messages', { description: data.error || 'Please try again.' });
+    }
+  } catch (e) {
+    console.error('Error fetching messages:', e);
+    setError(e instanceof Error ? e.message : 'An unknown error occurred.');
+    toast.error('Network error', { description: 'Could not connect to the server.' });
+  } finally {
+    setIsLoading(false);
+  }
+}
+
 export function HomePage(): JSX.Element {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessageText, setNewMessageText] = useState<string>('');
@@ -26,32 +56,11 @@ export function HomePage(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
   const mockUserId = useRef<string>(getMockUserId()); // Persistent mock user ID for the session
-  const fetchMessages = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/messages');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: ApiResponse<Message[]> = await response.json();
-      if (data.success && data.data) {
-        setMessages(data.data);
-      } else {
-        setError(data.error || 'Failed to fetch messages.');
-        toast.error('Failed to load messages', { description: data.error || 'Please try again.' });
-      }
-    } catch (e) {
-      console.error('Error fetching messages:', e);
-      setError(e instanceof Error ? e.message : 'An unknown error occurred.');
-      toast.error('Network error', { description: 'Could not connect to the server.' });
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+
+  // Effect to call the standalone fetchMessages function on component mount
   useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
+    fetchMessages(setIsLoading, setError, setMessages, toast);
+  }, []); // Empty dependency array ensures this runs only once on mount
   // Effect for auto-scrolling to the bottom of the message list
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -178,7 +187,7 @@ export function HomePage(): JSX.Element {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={fetchMessages}
+                    onClick={() => fetchMessages(setIsLoading, setError, setMessages, toast)}
                     disabled={isLoading || isPosting}
                     className="text-muted-foreground hover:text-foreground transition-colors duration-200"
                     aria-label="Refresh messages" // ARIA label for accessibility
