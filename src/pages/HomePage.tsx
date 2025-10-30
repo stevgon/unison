@@ -1,20 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { MessageCard } from '@/components/MessageCard';
+import { TypingIndicator } from '@/components/TypingIndicator'; // Import TypingIndicator
 import type { Message, ApiResponse } from '@shared/types';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RefreshCcw, Send } from 'lucide-react'; // Added Send icon
-import { Card, CardContent } from '@/components/ui/card'; // Added Card component
+import { RefreshCcw, Send } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 export function HomePage(): JSX.Element {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessageText, setNewMessageText] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isPosting, setIsPosting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState<boolean>(false); // New state for typing indicator
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref to manage typing timeout
   const fetchMessages = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -41,6 +44,28 @@ export function HomePage(): JSX.Element {
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
+  // Effect to manage typing indicator
+  useEffect(() => {
+    if (newMessageText.length > 0) {
+      setIsTyping(true);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      typingTimeoutRef.current = setTimeout(() => {
+        setIsTyping(false);
+      }, 3000); // Simulate typing for 3 seconds
+    } else {
+      setIsTyping(false);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    }
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [newMessageText]);
   const handlePostMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newMessageText.trim() === '') {
@@ -96,9 +121,9 @@ export function HomePage(): JSX.Element {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="space-y-4" /* Reduced space-y from 6 to 4 */
+          className="space-y-4"
         >
-          <Card className="p-4"> {/* Wrapped form content in a Card */}
+          <Card className="p-4">
             <form onSubmit={handlePostMessage} className="space-y-4">
               <Textarea
                 placeholder="What's on your mind? Share your thoughts anonymously..."
@@ -107,23 +132,26 @@ export function HomePage(): JSX.Element {
                 rows={4}
                 className="w-full bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200"
                 disabled={isPosting}
+                aria-label="Message content" // ARIA label for accessibility
               />
-              <div className="flex justify-between items-center"> {/* Changed to justify-between items-center */}
+              <div className="flex justify-between items-center">
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon" /* Changed to icon size */
+                  size="icon"
                   onClick={fetchMessages}
                   disabled={isLoading || isPosting}
                   className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                  aria-label="Refresh messages" // ARIA label for accessibility
                 >
-                  <RefreshCcw className="h-5 w-5" /> {/* Increased icon size for better touch target */}
+                  <RefreshCcw className="h-5 w-5" />
                   <span className="sr-only">Refresh Messages</span>
                 </Button>
                 <Button
                   type="submit"
                   className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95 flex items-center gap-2"
                   disabled={isPosting || newMessageText.trim() === ''}
+                  aria-label="Send message" // ARIA label for accessibility
                 >
                   {isPosting ? (
                     <>
@@ -140,6 +168,9 @@ export function HomePage(): JSX.Element {
               </div>
             </form>
           </Card>
+          <AnimatePresence>
+            {isTyping && <TypingIndicator />} {/* Conditionally render TypingIndicator */}
+          </AnimatePresence>
         </motion.section>
         {/* Message List */}
         <section className="space-y-6">
@@ -165,10 +196,14 @@ export function HomePage(): JSX.Element {
             {!isLoading && !error && messages.length > 0 && (
               <motion.div
                 layout
-                className="space-y-4" /* Adjusted space-y for chat bubbles */
+                className="space-y-4"
               >
-                {messages.map((message) => (
-                  <MessageCard key={message.id} message={message} />
+                {messages.map((message, index) => (
+                  <MessageCard
+                    key={message.id}
+                    message={message}
+                    isCurrentUser={index % 2 === 0} // Mocking current user for demonstration
+                  />
                 ))}
               </motion.div>
             )}
