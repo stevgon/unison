@@ -1,18 +1,19 @@
 import React from 'react';
-import { motion, Variants } from 'framer-motion'; // Import Variants type
+import { motion, Variants, Transition } from 'framer-motion'; // Import Variants and Transition types
 export function TypingIndicator(): JSX.Element {
-  // Define a base variant for the dot animation
-  const dotBaseVariants: Variants = {
+  // Define the animation properties for the dot's y-axis movement
+  const dotAnimation: Variants = {
     initial: { y: "0%" },
     animate: {
       y: ["0%", "-50%", "0%"],
-      transition: {
-        duration: 1.5,
-        ease: "easeInOut",
-        repeat: Infinity,
-        repeatType: "loop",
-      },
     },
+  };
+  // Define the common transition properties for the dots
+  const commonTransition: Transition = {
+    duration: 1.5,
+    ease: "easeInOut",
+    repeat: Infinity,
+    repeatType: "loop",
   };
   return (
     <motion.div
@@ -25,23 +26,24 @@ export function TypingIndicator(): JSX.Element {
     >
       <motion.span
         className="bg-muted-foreground rounded-full h-2 w-2"
-        variants={dotBaseVariants}
+        variants={dotAnimation}
         initial="initial"
         animate="animate"
+        transition={commonTransition} // Apply common transition
       />
       <motion.span
         className="bg-muted-foreground rounded-full h-2 w-2"
-        variants={dotBaseVariants}
+        variants={dotAnimation}
         initial="initial"
         animate="animate"
-        transition={{ ...dotBaseVariants.animate.transition, delay: 0.2 }} // Apply delay directly to the motion.span's transition prop
+        transition={{ ...commonTransition, delay: 0.2 }} // Merge common transition with delay
       />
       <motion.span
         className="bg-muted-foreground rounded-full h-2 w-2"
-        variants={dotBaseVariants}
+        variants={dotAnimation}
         initial="initial"
         animate="animate"
-        transition={{ ...dotBaseVariants.animate.transition, delay: 0.4 }} // Apply delay directly to the motion.span's transition prop
+        transition={{ ...commonTransition, delay: 0.4 }} // Merge common transition with delay
       />
     </motion.div>
   );

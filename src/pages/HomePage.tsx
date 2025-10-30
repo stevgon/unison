@@ -121,11 +121,11 @@ export function HomePage(): JSX.Element {
   };
   return (
     <AppLayout container className="min-h-screen">
-      {/* The main content wrapper, now constrained to max-w-3xl and centered */}
-      <div className="max-w-3xl mx-auto space-y-12 py-12 md:py-16">
+      {/* The main content wrapper, now constrained to max-w-3xl and centered, with flex column layout */}
+      <div className="max-w-3xl mx-auto h-full flex flex-col">
         <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
-        {/* Header */}
-        <header className="text-center space-y-4 animate-fade-in">
+        {/* Header - with dedicated vertical padding */}
+        <header className="text-center space-y-4 animate-fade-in py-8 md:py-10 lg:py-12">
           <h1 className="text-4xl font-bold text-foreground leading-tight">
             Unison
           </h1>
@@ -137,12 +137,50 @@ export function HomePage(): JSX.Element {
             A serene, anonymous space for a single topic discussion.
           </p>
         </header>
-        {/* Message Submission Form - Transformed into a chat-like input */}
+        {/* Message List - now flex-grow and scrollable */}
+        <section className="flex-grow overflow-y-auto space-y-6 px-4 sm:px-6 lg:px-8 py-4">
+          {isLoading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="ml-4 text-muted-foreground">Loading messages...</p>
+            </div>
+          )}
+          {error && (
+            <div className="text-center py-12 text-destructive">
+              <p className="font-semibold">Error: {error}</p>
+              <p className="text-sm text-muted-foreground">Please try refreshing the page.</p>
+            </div>
+          )}
+          {!isLoading && !error && messages.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <p className="text-lg font-semibold">No messages yet!</p>
+              <p className="text-sm">Be the first to share your thoughts.</p>
+            </div>
+          )}
+          <AnimatePresence initial={false}>
+            {!isLoading && !error && messages.length > 0 && (
+              <motion.div
+                layout
+                className="space-y-4"
+              >
+                {messages.map((message) => (
+                  <MessageCard
+                    key={message.id}
+                    message={message}
+                    isCurrentUser={message.mockSenderId === mockUserId.current} // Use persistent mockUserId
+                  />
+                ))}
+                <div ref={messagesEndRef} /> {/* Element to scroll into view */}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
+        {/* Message Submission Form - sticky at the bottom */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="space-y-4"
+          className="sticky bottom-0 bg-background border-t border-border py-4 px-4 sm:px-6 lg:px-8 z-10"
         >
           <Card className="p-4">
             <motion.div // Added motion.div wrapper for animation
@@ -199,45 +237,8 @@ export function HomePage(): JSX.Element {
             {isTyping && <TypingIndicator />}
           </AnimatePresence>
         </motion.section>
-        {/* Message List */}
-        <section className="space-y-6">
-          {isLoading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <p className="ml-4 text-muted-foreground">Loading messages...</p>
-            </div>
-          )}
-          {error && (
-            <div className="text-center py-12 text-destructive">
-              <p className="font-semibold">Error: {error}</p>
-              <p className="text-sm text-muted-foreground">Please try refreshing the page.</p>
-            </div>
-          )}
-          {!isLoading && !error && messages.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <p className="text-lg font-semibold">No messages yet!</p>
-              <p className="text-sm">Be the first to share your thoughts.</p>
-            </div>
-          )}
-          <AnimatePresence initial={false}>
-            {!isLoading && !error && messages.length > 0 && (
-              <motion.div
-                layout
-                className="space-y-4"
-              >
-                {messages.map((message) => (
-                  <MessageCard
-                    key={message.id}
-                    message={message}
-                    isCurrentUser={message.mockSenderId === mockUserId.current} // Use persistent mockUserId
-                  />
-                ))}
-                <div ref={messagesEndRef} /> {/* Element to scroll into view */}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </section>
-        <footer className="text-center text-muted-foreground/80 pt-12">
+        {/* Footer - with dedicated vertical padding */}
+        <footer className="text-center text-muted-foreground/80 pt-4 pb-8 px-4 sm:px-6 lg:px-8">
           <p>Built with ❤️ at Cloudflare</p>
         </footer>
         <Toaster richColors closeButton />
