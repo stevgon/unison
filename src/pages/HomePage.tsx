@@ -123,9 +123,9 @@ export function HomePage(): JSX.Element {
     <AppLayout container className="min-h-screen">
       {/* The main content wrapper, now constrained to max-w-3xl and centered, with flex column layout */}
       <div className="max-w-3xl mx-auto h-full flex flex-col">
-        <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
         {/* Header - with dedicated vertical padding */}
-        <header className="text-center space-y-4 animate-fade-in py-8 md:py-10 lg:py-12">
+        <header className="text-center space-y-4 animate-fade-in py-8 md:py-10 lg:py-12 relative"> {/* Added relative for ThemeToggle positioning */}
+          <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" /> {/* Integrated ThemeToggle */}
           <h1 className="text-4xl font-bold text-foreground leading-tight">
             Unison
           </h1>
