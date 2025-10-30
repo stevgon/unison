@@ -77,7 +77,9 @@ function updateWranglerJsonc() {
 }
 
 function runSetupCommands() {
-    const commands = [];
+    const commands = [
+    "rm -rf src/components/app-sidebar.tsx"
+];
     
     if (commands.length === 0) {
         console.log('⊘ No setup commands to run');
