@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+// Removed Card import as it's no longer used for message display
 import { formatDistanceToNowStrict } from 'date-fns';
 import type { Message } from '@shared/types';
 import { motion } from 'framer-motion';
@@ -22,19 +22,18 @@ export function MessageCard({ message }: MessageCardProps): JSX.Element {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      whileHover={{ scale: 1.01, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-      className="w-full"
+      // Removed whileHover prop for chat bubble aesthetic
+      className="w-full flex justify-end" // Align messages to the right for a chat feel
     >
-      <Card className="border hover:shadow-md transition-shadow duration-200 ease-in-out">
-        <CardContent className="p-6 space-y-3">
-          <p className="text-base text-foreground font-medium leading-relaxed text-pretty">
-            {message.text}
-          </p>
-          <p className="text-sm text-muted-foreground text-right">
-            {formattedTimestamp}
-          </p>
-        </CardContent>
-      </Card>
+      {/* Replaced Card with a div for chat bubble styling */}
+      <div className="bg-secondary p-4 rounded-xl shadow-sm max-w-[85%]"> {/* Chat bubble styling */}
+        <p className="text-base text-foreground font-medium leading-relaxed text-pretty">
+          {message.text}
+        </p>
+        <p className="text-xs text-muted-foreground text-right mt-2"> {/* Smaller, subtle timestamp */}
+          {formattedTimestamp}
+        </p>
+      </div>
     </motion.div>
   );
 }

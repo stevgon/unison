@@ -7,7 +7,8 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { MessageCard } from '@/components/MessageCard';
 import type { Message, ApiResponse } from '@shared/types';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RefreshCcw } from 'lucide-react';
+import { RefreshCcw, Send } from 'lucide-react'; // Added Send icon
+import { Card, CardContent } from '@/components/ui/card'; // Added Card component
 export function HomePage(): JSX.Element {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessageText, setNewMessageText] = useState<string>('');
@@ -90,42 +91,55 @@ export function HomePage(): JSX.Element {
             A serene, anonymous space for a single topic discussion.
           </p>
         </header>
-        {/* Message Submission Form */}
+        {/* Message Submission Form - Transformed into a chat-like input */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="space-y-6"
+          className="space-y-4" /* Reduced space-y from 6 to 4 */
         >
-          <form onSubmit={handlePostMessage} className="space-y-4">
-            <Textarea
-              placeholder="What's on your mind? Share your thoughts anonymously..."
-              value={newMessageText}
-              onChange={(e) => setNewMessageText(e.target.value)}
-              rows={4}
-              className="w-full bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200"
-              disabled={isPosting}
-            />
-            <div className="flex justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={fetchMessages}
-                disabled={isLoading || isPosting}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200"
-              >
-                <RefreshCcw className="h-4 w-4" />
-                Refresh
-              </Button>
-              <Button
-                type="submit"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95"
-                disabled={isPosting || newMessageText.trim() === ''}
-              >
-                {isPosting ? 'Posting...' : 'Post Message'}
-              </Button>
-            </div>
-          </form>
+          <Card className="p-4"> {/* Wrapped form content in a Card */}
+            <form onSubmit={handlePostMessage} className="space-y-4">
+              <Textarea
+                placeholder="What's on your mind? Share your thoughts anonymously..."
+                value={newMessageText}
+                onChange={(e) => setNewMessageText(e.target.value)}
+                rows={4}
+                className="w-full bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200"
+                disabled={isPosting}
+              />
+              <div className="flex justify-between items-center"> {/* Changed to justify-between items-center */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon" /* Changed to icon size */
+                  onClick={fetchMessages}
+                  disabled={isLoading || isPosting}
+                  className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                >
+                  <RefreshCcw className="h-5 w-5" /> {/* Increased icon size for better touch target */}
+                  <span className="sr-only">Refresh Messages</span>
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95 flex items-center gap-2"
+                  disabled={isPosting || newMessageText.trim() === ''}
+                >
+                  {isPosting ? (
+                    <>
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></span>
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      <span>Send</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Card>
         </motion.section>
         {/* Message List */}
         <section className="space-y-6">
@@ -151,7 +165,7 @@ export function HomePage(): JSX.Element {
             {!isLoading && !error && messages.length > 0 && (
               <motion.div
                 layout
-                className="space-y-6"
+                className="space-y-4" /* Adjusted space-y for chat bubbles */
               >
                 {messages.map((message) => (
                   <MessageCard key={message.id} message={message} />
@@ -161,7 +175,7 @@ export function HomePage(): JSX.Element {
           </AnimatePresence>
         </section>
         <footer className="text-center text-muted-foreground/80 pt-12">
-          <p>Built with ❤�� at Cloudflare</p>
+          <p>Built with ❤️ at Cloudflare</p>
         </footer>
         <Toaster richColors closeButton />
       </div>
