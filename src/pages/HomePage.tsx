@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -47,7 +47,6 @@ async function fetchMessages(
     setIsLoading(false);
   }
 }
-
 export function HomePage(): JSX.Element {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessageText, setNewMessageText] = useState<string>('');
@@ -56,7 +55,6 @@ export function HomePage(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
   const mockUserId = useRef<string>(getMockUserId()); // Persistent mock user ID for the session
-
   // Effect to call the standalone fetchMessages function on component mount
   useEffect(() => {
     fetchMessages(setIsLoading, setError, setMessages, toast);
@@ -113,10 +111,7 @@ export function HomePage(): JSX.Element {
           <h1 className="text-4xl font-bold text-foreground leading-tight">
             Unison
           </h1>
-          {/* Dedicated topic display */}
-          <div className="text-2xl font-semibold text-primary">
-            Topic: Anonymous Thoughts
-          </div>
+          {/* Removed: Dedicated topic display */}
           <p className="text-lg text-muted-foreground max-w-xl mx-auto text-pretty">
             A serene, anonymous space for a single topic discussion.
           </p>
