@@ -234,6 +234,12 @@ export function HomePage(): JSX.Element {
             </motion.div>
           </Card>
           <AnimatePresence>
+            {/*
+              Typing Indicator Explanation:
+              This animation appears when the user starts typing a message in the input field.
+              It simulates real-time input, providing a visual cue that a message is being composed.
+              The indicator disappears automatically a few seconds after typing stops.
+            */}
             {isTyping && <TypingIndicator />}
           </AnimatePresence>
         </motion.section>
