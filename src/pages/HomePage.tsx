@@ -104,7 +104,7 @@ export function HomePage(): JSX.Element {
   return (
     <AppLayout container className="min-h-screen">
       {/* The main content wrapper, now constrained to max-w-3xl and centered, with flex column layout */}
-      <div className="max-w-3xl mx-auto w-full flex flex-col">
+      <div className="max-w-3xl mx-auto w-full flex flex-col h-full">
         {/* Header - with dedicated vertical padding */}
         <header className="text-center space-y-2 animate-fade-in py-8 md:py-10 lg:py-12 relative"> {/* Adjusted space-y and py- */}
           <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" /> {/* Integrated ThemeToggle */}
@@ -157,7 +157,7 @@ export function HomePage(): JSX.Element {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="sticky bottom-0 bg-background border-t border-border py-4 px-4 sm:px-6 lg:px-8 z-10"
+          className="bg-background border-t border-border py-4 px-4 sm:px-6 lg:px-8"
         >
           <Card className="p-4">
             <motion.div // Added motion.div wrapper for animation
