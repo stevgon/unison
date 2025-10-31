@@ -85,7 +85,7 @@ export function HomePage(): JSX.Element {
         setIsLoading(false);
       }
     }
-  }, [getToken, invalidateSession, nextCursor]); // Dependencies for useCallback
+  }, [getToken, invalidateSession]); // Dependencies for useCallback
   // Effect to call the standalone fetchMessages function on component mount
   useEffect(() => {
     // Request token if not available on initial load
