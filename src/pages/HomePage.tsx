@@ -5,6 +5,8 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { MessageCard } from '@/components/MessageCard';
+import { MessageCardSkeleton } from '@/components/MessageCardSkeleton'; // Import the new skeleton component
+import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton for general use
 import type { Message, ApiResponse } from '@shared/types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { RefreshCcw, Send } from 'lucide-react';
@@ -118,9 +120,10 @@ export function HomePage(): JSX.Element {
         {/* Message List - now flex-grow and scrollable */}
         <section className="flex-grow overflow-y-auto space-y-6 p-4 border border-border rounded-lg">
           {isLoading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <p className="ml-4 text-muted-foreground">Loading messages...</p>
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <MessageCardSkeleton key={index} isCurrentUser={index % 2 === 0} />
+              ))}
             </div>
           )}
           {error && (
@@ -203,7 +206,13 @@ export function HomePage(): JSX.Element {
                   className="text-muted-foreground hover:text-foreground transition-colors duration-200 h-[2.5rem] w-[2.5rem]"
                   aria-label="Refresh messages"
                 >
-                  <RefreshCcw className="h-5 w-5" />
+                  <motion.span
+                    animate={{ rotate: isLoading || isPosting ? 360 : 0 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    initial={{ rotate: 0 }}
+                  >
+                    <RefreshCcw className="h-5 w-5" />
+                  </motion.span>
                   <span className="sr-only">Refresh Messages</span>
                 </Button>
               </form>
