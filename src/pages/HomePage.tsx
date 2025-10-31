@@ -208,8 +208,8 @@ export function HomePage(): JSX.Element {
           </Card>
         </motion.section>
         {/* Footer - with dedicated vertical padding */}
-        <footer className="text-center text-muted-foreground/80 py-8 md:py-10 lg:py-12 px-4 sm:px-6 lg:px-8">
-          <p>Built with ❤️ at Cloudflare</p>
+        <footer className="text-center text-muted-foreground/80 py-8 md:py-10 lg:py-12">
+          <p>Built with ��️ at Cloudflare</p>
         </footer>
         <Toaster richColors closeButton />
       </div>
