@@ -17,3 +17,8 @@ export interface ApiResponse<T = unknown> {
 export interface RateLimitState {
   [ip: string]: number; // IP address to last request timestamp (ms)
 }
+export interface UserSession {
+  token: string;
+  expiresAt: string; // ISO string
+  createdAt: string; // ISO string
+}
