@@ -111,7 +111,7 @@ export function HomePage(): JSX.Element {
         <header className="flex items-center py-4 animate-fade-in relative">
           <p className="text-muted-foreground/80 text-sm flex-shrink-0">Built with ❤️ at Cloudflare</p>
           <div className="flex-grow text-center">
-            <h1 className="text-2xl font-bold text-foreground leading-tight">
+            <h1 className="text-4xl font-bold text-foreground leading-tight">
               Unison
             </h1>
           </div>
