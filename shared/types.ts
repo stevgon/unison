@@ -14,3 +14,6 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
 }
+export interface RateLimitState {
+  [ip: string]: number; // IP address to last request timestamp (ms)
+}

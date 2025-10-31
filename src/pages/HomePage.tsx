@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -67,8 +67,7 @@ export function HomePage(): JSX.Element {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]); // Scroll whenever messages update
-  const handlePostMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePostMessage = useCallback(async () => {
     if (newMessageText.trim() === '') {
       toast.warning('Message cannot be empty', { description: 'Please write something before posting.' });
       return;
@@ -84,7 +83,8 @@ export function HomePage(): JSX.Element {
         body: JSON.stringify({ text: newMessageText, mockSenderId: mockUserId.current }), // Pass mockSenderId
       });
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData: ApiResponse = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
       const data: ApiResponse<Message[]> = await response.json();
       if (data.success && data.data) {
@@ -98,11 +98,17 @@ export function HomePage(): JSX.Element {
     } catch (e) {
       console.error('Error posting message:', e);
       setError(e instanceof Error ? e.message : 'An unknown error occurred.');
-      toast.error('Network error', { description: 'Could not post message.' });
+      toast.error('Network error', { description: e instanceof Error ? e.message : 'Could not post message.' });
     } finally {
       setIsPosting(false);
     }
-  };
+  }, [newMessageText]); // Dependency on newMessageText
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Prevent new line
+      handlePostMessage(); // Send message
+    }
+  }, [handlePostMessage]);
   return (
     <AppLayout container>
       {/* The main content wrapper, constrained to max-w-3xl and centered, with flex column layout and reduced vertical spacing */}
@@ -172,11 +178,12 @@ export function HomePage(): JSX.Element {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
             >
-              <form onSubmit={handlePostMessage} className="flex items-end gap-2">
+              <form onSubmit={(e) => { e.preventDefault(); handlePostMessage(); }} className="flex items-end gap-2">
                 <Textarea
                   placeholder="What's on your mind? Share your thoughts anonymously..."
                   value={newMessageText}
                   onChange={(e) => setNewMessageText(e.target.value)}
+                  onKeyDown={handleKeyDown} // Add onKeyDown handler
                   rows={1}
                   className="flex-grow min-h-[2.5rem] max-h-[10rem] overflow-y-auto resize-none bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200"
                   disabled={isPosting}
