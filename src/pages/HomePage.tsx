@@ -110,7 +110,7 @@ export function HomePage(): JSX.Element {
         {/* Header - new single-row layout */}
         <header className="flex items-center justify-between py-4 animate-fade-in">
           <div className="flex items-baseline gap-2"> {/* Group title and topic on same line */}
-            <h1 className="text-3xl font-bold text-foreground leading-tight">
+            <h1 className="text-2xl font-bold text-foreground leading-tight">
               Unison
             </h1>
             <p className="text-base text-muted-foreground">Anonymous Thoughts</p>
