@@ -177,7 +177,7 @@ export function HomePage(): JSX.Element {
         </header>
         {/* Message List - now flex-grow and scrollable */}
         <section className="flex-grow overflow-y-auto space-y-6 p-4 border border-border rounded-lg">
-          {displayLoading && !isLoadingMore && ( // Only show initial loading skeletons
+          {displayLoading && !isLoadingMore && messages.length === 0 && ( // Only show initial loading skeletons
             <div className="space-y-4">
               {Array.from({ length: MESSAGE_FETCH_LIMIT }).map((_, index) => (
                 <MessageCardSkeleton key={index} isCurrentUser={index % 2 === 0} />
