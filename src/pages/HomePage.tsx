@@ -102,7 +102,14 @@ export function HomePage(): JSX.Element {
     }
   };
   return (
-    <AppLayout container>
+    <AppLayout
+      container
+      footer={
+        <footer className="absolute top-0 left-0 p-4 text-muted-foreground/80 text-sm rotate-90 transform-origin-top-left z-50">
+          <p>Built with ❤️ at Cloudflare</p>
+        </footer>
+      }
+    >
       {/* The main content wrapper, constrained to max-w-3xl and centered, with flex column layout */}
       <div className="max-w-3xl mx-auto w-full flex-grow flex flex-col relative space-y-6">
         {/* Header - with dedicated vertical padding */}
@@ -207,10 +214,6 @@ export function HomePage(): JSX.Element {
             </motion.div>
           </Card>
         </motion.section>
-        {/* Footer - with dedicated vertical padding */}
-        <footer className="text-center text-muted-foreground/80 py-8 md:py-10 lg:py-12">
-          <p>Built with ��️ at Cloudflare</p>
-        </footer>
         <Toaster richColors closeButton />
       </div>
     </AppLayout>
