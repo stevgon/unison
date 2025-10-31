@@ -105,8 +105,8 @@ export function HomePage(): JSX.Element {
     <AppLayout
       container
       footer={
-        <footer className="absolute top-0 left-0 p-4 text-muted-foreground/80 text-sm rotate-90 transform-origin-top-left z-50">
-          <p>Built with ❤️ at Cloudflare</p>
+        <footer className="absolute bottom-0 left-0 p-4 text-muted-foreground/80 text-sm rotate-90 transform-origin-top-left z-50">
+          <p>Built with ❤��� at Cloudflare</p>
         </footer>
       }
     >
