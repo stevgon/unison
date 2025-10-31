@@ -130,13 +130,14 @@ export function HomePage(): JSX.Element {
       if (response.success && response.data) {
         // After posting, re-fetch the initial set of messages to get the latest
         // This will reset pagination and show the newest message at the top
-        setMessages(response.data); // Assuming the backend returns the full updated list or the latest page
-        setNewMessageText('');
-        toast.success('Message posted!', { description: 'Your message is now live.' });
-        // Reset pagination state after posting
+        // Assuming the backend returns the full updated list or the latest page
+        // The `fetchMessages()` call is redundant if `response.data` already contains the updated list.
+        // We reset pagination state and then update messages with the response data.
         setHasMore(true);
         setNextCursor(null);
-        fetchMessages(); // Re-fetch from start to show new message
+        setMessages(response.data);
+        setNewMessageText('');
+        toast.success('Message posted!', { description: 'Your message is now live.' });
       } else {
         setError(response.error || 'Failed to post message.');
         toast.error('Failed to post message', { description: response.error || 'Please try again.' });
