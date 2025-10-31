@@ -11,6 +11,8 @@ import type { Message, ApiResponse } from '@shared/types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { RefreshCcw, Send } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useAuthSession } from '@/hooks/use-auth-session'; // Import the new auth hook
+import { authenticatedFetch } from '@/lib/api'; // Import the new authenticated fetch wrapper
 // Helper to generate a consistent mock user ID for the session
 const getMockUserId = (): string => {
   let userId = localStorage.getItem('mockUserId');
@@ -20,35 +22,6 @@ const getMockUserId = (): string => {
   }
   return userId;
 };
-// Standalone async function to fetch messages, accepting state setters and toast as arguments
-async function fetchMessages(
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setError: React.Dispatch<React.SetStateAction<string | null>>,
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
-  toast: typeof import('@/components/ui/sonner').toast
-) {
-  setIsLoading(true);
-  setError(null);
-  try {
-    const response = await fetch('/api/messages');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data: ApiResponse<Message[]> = await response.json();
-    if (data.success && data.data) {
-      setMessages(data.data);
-    } else {
-      setError(data.error || 'Failed to fetch messages.');
-      toast.error('Failed to load messages', { description: data.error || 'Please try again.' });
-    }
-  } catch (e) {
-    console.error('Error fetching messages:', e);
-    setError(e instanceof Error ? e.message : 'An unknown error occurred.');
-    toast.error('Network error', { description: 'Could not connect to the server.' });
-  } finally {
-    setIsLoading(false);
-  }
-}
 export function HomePage(): JSX.Element {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessageText, setNewMessageText] = useState<string>('');
@@ -57,10 +30,50 @@ export function HomePage(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
   const mockUserId = useRef<string>(getMockUserId()); // Persistent mock user ID for the session
+  const {
+    token,
+    isLoadingSession,
+    sessionError,
+    requestToken,
+    invalidateSession,
+    getToken,
+  } = useAuthSession(); // Use the new auth hook
+  // Standalone async function to fetch messages, accepting state setters and toast as arguments
+  const fetchMessages = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await authenticatedFetch<Message[]>(
+        '/api/messages',
+        { method: 'GET' },
+        getToken,
+        invalidateSession
+      );
+      if (response.success && response.data) {
+        setMessages(response.data);
+      } else {
+        setError(response.error || 'Failed to fetch messages.');
+        toast.error('Failed to load messages', { description: response.error || 'Please try again.' });
+      }
+    } catch (e) {
+      console.error('Error fetching messages:', e);
+      setError(e instanceof Error ? e.message : 'An unknown error occurred.');
+      toast.error('Network error', { description: 'Could not connect to the server.' });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [getToken, invalidateSession]); // Dependencies for useCallback
   // Effect to call the standalone fetchMessages function on component mount
   useEffect(() => {
-    fetchMessages(setIsLoading, setError, setMessages, toast);
-  }, []); // Empty dependency array ensures this runs only once on mount
+    // Request token if not available on initial load
+    if (!token && !isLoadingSession) {
+      requestToken();
+    }
+    // Fetch messages once token is available or session is loading
+    if (token || isLoadingSession) {
+      fetchMessages();
+    }
+  }, [token, isLoadingSession, requestToken, fetchMessages]); // Re-run if token or session loading state changes
   // Effect for auto-scrolling to the bottom of the message list
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -72,28 +85,32 @@ export function HomePage(): JSX.Element {
       toast.warning('Message cannot be empty', { description: 'Please write something before posting.' });
       return;
     }
+    if (!token) {
+      toast.error('Session required', { description: 'Please refresh the page to get a new session token.' });
+      return;
+    }
     setIsPosting(true);
     setError(null);
     try {
-      const response = await fetch('/api/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await authenticatedFetch<Message[]>(
+        '/api/messages',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: newMessageText, mockSenderId: mockUserId.current }),
         },
-        body: JSON.stringify({ text: newMessageText, mockSenderId: mockUserId.current }), // Pass mockSenderId
-      });
-      if (!response.ok) {
-        const errorData: ApiResponse = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-      const data: ApiResponse<Message[]> = await response.json();
-      if (data.success && data.data) {
-        setMessages(data.data);
+        getToken,
+        invalidateSession
+      );
+      if (response.success && response.data) {
+        setMessages(response.data);
         setNewMessageText('');
         toast.success('Message posted!', { description: 'Your message is now live.' });
       } else {
-        setError(data.error || 'Failed to post message.');
-        toast.error('Failed to post message', { description: data.error || 'Please try again.' });
+        setError(response.error || 'Failed to post message.');
+        toast.error('Failed to post message', { description: response.error || 'Please try again.' });
       }
     } catch (e) {
       console.error('Error posting message:', e);
@@ -102,13 +119,15 @@ export function HomePage(): JSX.Element {
     } finally {
       setIsPosting(false);
     }
-  }, [newMessageText]); // Dependency on newMessageText
+  }, [newMessageText, token, getToken, invalidateSession]); // Dependencies on newMessageText, token, and auth functions
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault(); // Prevent new line
       handlePostMessage(); // Send message
     }
   }, [handlePostMessage]);
+  const displayLoading = isLoading || isLoadingSession;
+  const displayError = error || sessionError;
   return (
     <AppLayout container>
       {/* The main content wrapper, constrained to max-w-3xl and centered, with flex column layout and reduced vertical spacing */}
@@ -128,27 +147,27 @@ export function HomePage(): JSX.Element {
         </header>
         {/* Message List - now flex-grow and scrollable */}
         <section className="flex-grow overflow-y-auto space-y-6 p-4 border border-border rounded-lg">
-          {isLoading && (
+          {displayLoading && (
             <div className="space-y-4">
               {Array.from({ length: 5 }).map((_, index) => (
                 <MessageCardSkeleton key={index} isCurrentUser={index % 2 === 0} />
               ))}
             </div>
           )}
-          {error && (
+          {displayError && (
             <div className="text-center py-12 text-destructive">
-              <p className="font-semibold">Error: {error}</p>
+              <p className="font-semibold">Error: {displayError}</p>
               <p className="text-sm text-muted-foreground">Please try refreshing the page.</p>
             </div>
           )}
-          {!isLoading && !error && messages.length === 0 && (
+          {!displayLoading && !displayError && messages.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <p className="text-lg font-semibold">No messages yet!</p>
               <p className="text-sm">Be the first to share your thoughts.</p>
             </div>
           )}
           <AnimatePresence initial={false}>
-            {!isLoading && !error && messages.length > 0 && (
+            {!displayLoading && !displayError && messages.length > 0 && (
               <motion.div
                 layout
                 className="space-y-4"
@@ -170,7 +189,7 @@ export function HomePage(): JSX.Element {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="bg-background" // Removed border-t border-border
+          className="bg-background"
         >
           <Card className="p-4 focus-within:shadow-glow transition-shadow duration-200"> {/* Added focus-within:shadow-glow */}
             <motion.div
@@ -186,13 +205,13 @@ export function HomePage(): JSX.Element {
                   onKeyDown={handleKeyDown} // Add onKeyDown handler
                   rows={1}
                   className="flex-grow min-h-[2.5rem] max-h-[10rem] overflow-y-auto resize-none bg-secondary text-secondary-foreground border border-input placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200"
-                  disabled={isPosting}
+                  disabled={isPosting || isLoadingSession || !token} // Disable if session is loading or no token
                   aria-label="Message content"
                 />
                 <Button
                   type="submit"
                   className="h-[2.5rem] bg-primary text-primary-foreground hover:bg-primary/80 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95 flex items-center gap-2" // Refined hover:bg-primary/80
-                  disabled={isPosting || newMessageText.trim() === ''}
+                  disabled={isPosting || newMessageText.trim() === '' || isLoadingSession || !token} // Disable if session is loading or no token
                   aria-label="Send message"
                 >
                   {isPosting ? (
@@ -211,13 +230,13 @@ export function HomePage(): JSX.Element {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => fetchMessages(setIsLoading, setError, setMessages, toast)}
-                  disabled={isLoading || isPosting}
+                  onClick={fetchMessages} // Use the useCallback version
+                  disabled={isLoading || isPosting || isLoadingSession} // Disable if session is loading
                   className="text-muted-foreground hover:text-foreground transition-colors duration-200 h-[2.5rem] w-[2.5rem]"
                   aria-label="Refresh messages"
                 >
                   <motion.span
-                    animate={{ rotate: isLoading || isPosting ? 360 : 0 }}
+                    animate={{ rotate: displayLoading ? 360 : 0 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     initial={{ rotate: 0 }}
                   >
