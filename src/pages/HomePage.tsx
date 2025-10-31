@@ -108,12 +108,12 @@ export function HomePage(): JSX.Element {
       {/* The main content wrapper, constrained to max-w-3xl and centered, with flex column layout and reduced vertical spacing */}
       <div className="max-w-3xl mx-auto w-full flex-grow flex flex-col space-y-4">
         {/* Header - new single-row layout */}
-        <header className="flex items-center justify-between py-4 animate-fade-in">
-          <div className="flex items-baseline gap-2"> {/* Group title and topic on same line */}
-            <h1 className="text-2xl font-bold text-foreground leading-tight">
+        <header className="flex items-center justify-between py-6 animate-fade-in">
+          <div className="flex items-baseline gap-4"> {/* Group title and topic on same line */}
+            <h1 className="text-4xl font-bold text-foreground leading-tight">
               Unison
             </h1>
-            <p className="text-base text-muted-foreground">Anonymous Thoughts</p>
+            <p className="text-lg text-muted-foreground">Anonymous Thoughts</p>
           </div>
           <div className="flex items-center gap-4">
             <p className="text-muted-foreground/80 text-sm flex-shrink-0">Built with ❤️ at Cloudflare</p>
