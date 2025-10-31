@@ -104,7 +104,7 @@ export function HomePage(): JSX.Element {
   return (
     <AppLayout container>
       {/* The main content wrapper, constrained to max-w-3xl and centered, with flex column layout */}
-      <div className="max-w-3xl mx-auto w-full flex-grow flex flex-col relative">
+      <div className="max-w-3xl mx-auto w-full flex-grow flex flex-col relative space-y-6">
         {/* Header - with dedicated vertical padding */}
         <header className="text-center space-y-2 animate-fade-in py-8 md:py-10 lg:py-12 relative">
           <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
@@ -113,7 +113,7 @@ export function HomePage(): JSX.Element {
           </h1>
         </header>
         {/* Message List - now flex-grow and scrollable */}
-        <section className="flex-grow overflow-y-auto space-y-6 px-4 sm:px-6 lg:px-8 py-4 border border-border rounded-lg">
+        <section className="flex-grow overflow-y-auto space-y-6 p-4 border border-border rounded-lg">
           {isLoading && (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -155,7 +155,7 @@ export function HomePage(): JSX.Element {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="bg-background border-t border-border py-4 px-4 sm:px-6 lg:px-8"
+          className="bg-background border-t border-border"
         >
           <Card className="p-4">
             <motion.div
