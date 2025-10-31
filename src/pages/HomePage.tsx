@@ -85,7 +85,8 @@ export function HomePage(): JSX.Element {
         setIsLoading(false);
       }
     }
-  }, [getToken, invalidateSession]); // Dependencies for useCallback
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getToken, invalidateSession]); // nextCursor is intentionally omitted to prevent an infinite loop, as the function only needs the latest value when called, not on every cursor change.
   // Effect to call the standalone fetchMessages function on component mount
   useEffect(() => {
     // Request token if not available on initial load
