@@ -109,9 +109,12 @@ export function HomePage(): JSX.Element {
       <div className="max-w-3xl mx-auto w-full flex-grow flex flex-col space-y-6">
         {/* Header - new single-row layout */}
         <header className="flex items-center justify-between py-4 animate-fade-in">
-          <h1 className="text-3xl font-bold text-foreground leading-tight flex-shrink-0">
-            Unison
-          </h1>
+          <div className="flex flex-col items-start"> {/* Group title and topic */}
+            <h1 className="text-4xl font-bold text-foreground leading-tight">
+              Unison
+            </h1>
+            <p className="text-lg text-muted-foreground">Anonymous Thoughts</p>
+          </div>
           <div className="flex items-center gap-4">
             <p className="text-muted-foreground/80 text-sm flex-shrink-0">Built with ❤️ at Cloudflare</p>
             <ThemeToggle className="" /> {/* Pass empty className to override default absolute positioning */}
