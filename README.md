@@ -1,6 +1,6 @@
 # Unison
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/stevgon/unison)
 
 Unison is an anonymous, single-topic message board designed with a minimalist aesthetic. The application provides a serene, focused space for discussion. It operates as a single-page application where users can read a stream of messages and contribute their own without needing an account. The core components are a clean header defining the topic, a simple form for message submission, and a chronologically ordered list of messages. The design prioritizes clarity, generous white space, and subtle interactions to create a calm and inviting user experience.
 
@@ -105,7 +105,7 @@ Unison is designed for seamless deployment to Cloudflare Workers.
 
 Alternatively, you can deploy directly using the Cloudflare button:
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/stevgon/unison)
 
 ## 🌐 API Endpoints
 
