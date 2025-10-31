@@ -102,9 +102,9 @@ export function HomePage(): JSX.Element {
     }
   };
   return (
-    <AppLayout container className="min-h-screen">
+    <AppLayout container>
       {/* The main content wrapper, constrained to max-w-3xl and centered, with flex column layout */}
-      <div className="max-w-3xl mx-auto w-full h-full flex flex-col relative">
+      <div className="max-w-3xl mx-auto w-full flex-grow flex flex-col relative">
         {/* Header - with dedicated vertical padding */}
         <header className="text-center space-y-2 animate-fade-in py-8 md:py-10 lg:py-12 relative">
           <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
