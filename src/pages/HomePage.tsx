@@ -172,7 +172,7 @@ export function HomePage(): JSX.Element {
           transition={{ delay: 0.2, duration: 0.4 }}
           className="bg-background" // Removed border-t border-border
         >
-          <Card className="p-4">
+          <Card className="p-4 focus-within:shadow-glow transition-shadow duration-200"> {/* Added focus-within:shadow-glow */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -191,7 +191,7 @@ export function HomePage(): JSX.Element {
                 />
                 <Button
                   type="submit"
-                  className="h-[2.5rem] bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95 flex items-center gap-2"
+                  className="h-[2.5rem] bg-primary text-primary-foreground hover:bg-primary/80 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 active:scale-95 flex items-center gap-2" // Refined hover:bg-primary/80
                   disabled={isPosting || newMessageText.trim() === ''}
                   aria-label="Send message"
                 >
