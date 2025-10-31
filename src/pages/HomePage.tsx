@@ -106,7 +106,7 @@ export function HomePage(): JSX.Element {
       container
       footer={
         <footer className="absolute bottom-0 left-0 p-4 text-muted-foreground/80 text-sm rotate-90 transform-origin-top-left z-50">
-          <p>Built with ❤��� at Cloudflare</p>
+          <p>Built with ❤️ at Cloudflare</p>
         </footer>
       }
     >
