@@ -7,7 +7,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { MessageCard } from '@/components/MessageCard';
 import { MessageCardSkeleton } from '@/components/MessageCardSkeleton'; // Import the new skeleton component
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton for general use
-import type { Message, ApiResponse } from '@shared/types';
+import type { Message, ApiResponse, PaginatedMessagesResponse } from '@shared/types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { RefreshCcw, Send } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -22,12 +22,16 @@ const getMockUserId = (): string => {
   }
   return userId;
 };
+const MESSAGE_FETCH_LIMIT = 20; // Number of messages to fetch per page
 export function HomePage(): JSX.Element {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessageText, setNewMessageText] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Initial load
   const [isPosting, setIsPosting] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false); // For loading more messages
   const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState<boolean>(true); // Whether more messages are available
+  const [nextCursor, setNextCursor] = useState<{ timestamp?: string; id?: string } | null>(null); // Cursor for pagination
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
   const mockUserId = useRef<string>(getMockUserId()); // Persistent mock user ID for the session
   const {
@@ -39,18 +43,33 @@ export function HomePage(): JSX.Element {
     getToken,
   } = useAuthSession(); // Use the new auth hook
   // Standalone async function to fetch messages, accepting state setters and toast as arguments
-  const fetchMessages = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  const fetchMessages = useCallback(async (isLoadMore: boolean = false) => {
+    if (isLoadMore) {
+      setIsLoadingMore(true);
+    } else {
+      setIsLoading(true);
+      setError(null);
+    }
     try {
-      const response = await authenticatedFetch<Message[]>(
-        '/api/messages',
+      let url = `/api/messages?limit=${MESSAGE_FETCH_LIMIT}`;
+      if (isLoadMore && nextCursor?.timestamp && nextCursor?.id) {
+        url += `&cursorTimestamp=${nextCursor.timestamp}&cursorId=${nextCursor.id}`;
+      }
+      const response = await authenticatedFetch<PaginatedMessagesResponse>(
+        url,
         { method: 'GET' },
         getToken,
         invalidateSession
       );
       if (response.success && response.data) {
-        setMessages(response.data);
+        const { messages: newMessages, hasMore: newHasMore, nextCursorTimestamp, nextCursorId } = response.data;
+        if (isLoadMore) {
+          setMessages((prevMessages) => [...prevMessages, ...newMessages]);
+        } else {
+          setMessages(newMessages);
+        }
+        setHasMore(newHasMore);
+        setNextCursor({ timestamp: nextCursorTimestamp, id: nextCursorId });
       } else {
         setError(response.error || 'Failed to fetch messages.');
         toast.error('Failed to load messages', { description: response.error || 'Please try again.' });
@@ -60,9 +79,13 @@ export function HomePage(): JSX.Element {
       setError(e instanceof Error ? e.message : 'An unknown error occurred.');
       toast.error('Network error', { description: 'Could not connect to the server.' });
     } finally {
-      setIsLoading(false);
+      if (isLoadMore) {
+        setIsLoadingMore(false);
+      } else {
+        setIsLoading(false);
+      }
     }
-  }, [getToken, invalidateSession]); // Dependencies for useCallback
+  }, [getToken, invalidateSession, nextCursor]); // Dependencies for useCallback
   // Effect to call the standalone fetchMessages function on component mount
   useEffect(() => {
     // Request token if not available on initial load
@@ -105,9 +128,15 @@ export function HomePage(): JSX.Element {
         invalidateSession
       );
       if (response.success && response.data) {
-        setMessages(response.data);
+        // After posting, re-fetch the initial set of messages to get the latest
+        // This will reset pagination and show the newest message at the top
+        setMessages(response.data); // Assuming the backend returns the full updated list or the latest page
         setNewMessageText('');
         toast.success('Message posted!', { description: 'Your message is now live.' });
+        // Reset pagination state after posting
+        setHasMore(true);
+        setNextCursor(null);
+        fetchMessages(); // Re-fetch from start to show new message
       } else {
         setError(response.error || 'Failed to post message.');
         toast.error('Failed to post message', { description: response.error || 'Please try again.' });
@@ -119,7 +148,7 @@ export function HomePage(): JSX.Element {
     } finally {
       setIsPosting(false);
     }
-  }, [newMessageText, token, getToken, invalidateSession]); // Dependencies on newMessageText, token, and auth functions
+  }, [newMessageText, token, getToken, invalidateSession, fetchMessages]); // Dependencies on newMessageText, token, and auth functions
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault(); // Prevent new line
@@ -147,9 +176,9 @@ export function HomePage(): JSX.Element {
         </header>
         {/* Message List - now flex-grow and scrollable */}
         <section className="flex-grow overflow-y-auto space-y-6 p-4 border border-border rounded-lg">
-          {displayLoading && (
+          {displayLoading && !isLoadingMore && ( // Only show initial loading skeletons
             <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, index) => (
+              {Array.from({ length: MESSAGE_FETCH_LIMIT }).map((_, index) => (
                 <MessageCardSkeleton key={index} isCurrentUser={index % 2 === 0} />
               ))}
             </div>
@@ -179,6 +208,25 @@ export function HomePage(): JSX.Element {
                     isCurrentUser={message.mockSenderId === mockUserId.current}
                   />
                 ))}
+                {hasMore && (
+                  <div className="text-center py-4">
+                    <Button
+                      onClick={() => fetchMessages(true)}
+                      disabled={isLoadingMore || isLoading || isPosting}
+                      variant="outline"
+                      className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                    >
+                      {isLoadingMore ? (
+                        <>
+                          <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></span>
+                          Loading More...
+                        </>
+                      ) : (
+                        'Load More'
+                      )}
+                    </Button>
+                  </div>
+                )}
                 <div ref={messagesEndRef} /> {/* Element to scroll into view */}
               </motion.div>
             )}
@@ -230,7 +278,7 @@ export function HomePage(): JSX.Element {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={fetchMessages} // Use the useCallback version
+                  onClick={() => fetchMessages(false)} // Re-fetch initial page
                   disabled={isLoading || isPosting || isLoadingSession} // Disable if session is loading
                   className="text-muted-foreground hover:text-foreground transition-colors duration-200 h-[2.5rem] w-[2.5rem]"
                   aria-label="Refresh messages"

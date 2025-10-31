@@ -22,3 +22,14 @@ export interface UserSession {
   expiresAt: string; // ISO string
   createdAt: string; // ISO string
 }
+export interface PaginationParams {
+  limit: number;
+  cursorTimestamp?: string; // ISO string
+  cursorId?: string;
+}
+export interface PaginatedMessagesResponse {
+  messages: Message[];
+  hasMore: boolean;
+  nextCursorTimestamp?: string; // ISO string
+  nextCursorId?: string;
+}

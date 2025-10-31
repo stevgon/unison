@@ -1,10 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
-import type { DemoItem, Message, RateLimitState, UserSession } from '@shared/types';
-
-
+import type { DemoItem, Message, RateLimitState, UserSession, PaginatedMessagesResponse } from '@shared/types';
 interface Env {
   id?: string | number;
-
   [key: string]: unknown;
 }export class GlobalDurableObject extends DurableObject {private readonly RATE_LIMIT_INTERVAL_MS = 5000;private readonly MAX_ACTIVE_TOKENS = 100;private readonly TOKEN_EXPIRATION_MS = 30 * 60 * 1000;private activeSessions: Record<string, UserSession> = {};constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -16,11 +13,9 @@ interface Env {
       this.cleanupExpiredSessions();
     });
   }
-
   private async saveSessions(): Promise<void> {
     await this.ctx.storage.put("active_sessions", this.activeSessions);
   }
-
   private cleanupExpiredSessions(): void {
     const currentTime = Date.now();
     let sessionsChanged = false;
@@ -32,22 +27,54 @@ interface Env {
       }
     }
     if (sessionsChanged) {
-
       this.ctx.storage.put("active_sessions", this.activeSessions);
     }
   }
-
-  async getMessages(): Promise<Message[]> {
-    const messages = await this.ctx.storage.get("unison_messages");
-    if (messages) {
-      return messages as Message[];
+  async getMessages(limit: number, cursorTimestamp?: string, cursorId?: string): Promise<PaginatedMessagesResponse> {
+    const allMessages: Message[] = (await this.ctx.storage.get("unison_messages")) || [];
+    // Sort messages: newest first, then by ID for stable ordering
+    const sortedMessages = [...allMessages].sort((a, b) => {
+      const dateA = new Date(a.timestamp).getTime();
+      const dateB = new Date(b.timestamp).getTime();
+      if (dateA !== dateB) {
+        return dateB - dateA; // Newest first
+      }
+      return b.id.localeCompare(a.id); // Stable sort by ID if timestamps are identical
+    });
+    let startIndex = 0;
+    if (cursorTimestamp && cursorId) {
+      // Find the index of the message right after the cursor
+      startIndex = sortedMessages.findIndex(
+        (msg) =>
+          new Date(msg.timestamp).getTime() === new Date(cursorTimestamp).getTime() &&
+          msg.id === cursorId
+      );
+      if (startIndex !== -1) {
+        startIndex++; // Start from the next message
+      } else {
+        startIndex = 0; // Cursor not found, start from beginning
+      }
     }
-
-    await this.ctx.storage.put("unison_messages", []);
-    return [];
+    const paginatedMessages = sortedMessages.slice(startIndex, startIndex + limit);
+    const hasMore = (startIndex + limit) < sortedMessages.length;
+    let nextCursorTimestamp: string | undefined;
+    let nextCursorId: string | undefined;
+    if (hasMore) {
+      const lastMessage = paginatedMessages[paginatedMessages.length - 1];
+      if (lastMessage) {
+        nextCursorTimestamp = lastMessage.timestamp;
+        nextCursorId = lastMessage.id;
+      }
+    }
+    return {
+      messages: paginatedMessages,
+      hasMore,
+      nextCursorTimestamp,
+      nextCursorId,
+    };
   }
   async addMessage(text: string, mockSenderId?: string): Promise<Message[]> {
-    const messages = await this.getMessages();
+    const messages = await this.getMessages(Infinity).then(res => res.messages); // Fetch all messages for adding
     const newMessage: Message = {
       id: crypto.randomUUID(),
       text: text,
@@ -69,7 +96,6 @@ interface Env {
     await this.ctx.storage.put("rate_limit_state", rateLimitState);
     return true;
   }
-
   async createSession(): Promise<UserSession | null> {
     this.cleanupExpiredSessions();
     if (Object.keys(this.activeSessions).length >= this.MAX_ACTIVE_TOKENS) {
@@ -91,7 +117,6 @@ interface Env {
       return false;
     }
     if (new Date(session.expiresAt).getTime() < Date.now()) {
-
       delete this.activeSessions[token];
       await this.saveSessions();
       return false;

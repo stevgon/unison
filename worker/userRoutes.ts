@@ -1,12 +1,15 @@
 import { Hono } from "hono";
 import { Env } from './core-utils';
-import type { ApiResponse, Message, UserSession } from '@shared/types';
+import type { ApiResponse, Message, UserSession, PaginatedMessagesResponse } from '@shared/types';
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
     // New routes for Unison message board
     app.get('/api/messages', async (c) => {
         const durableObjectStub = c.env.GlobalDurableObject.get(c.env.GlobalDurableObject.idFromName("global"));
-        const messages = await durableObjectStub.getMessages();
-        return c.json({ success: true, data: messages } satisfies ApiResponse<Message[]>);
+        const limit = parseInt(c.req.query('limit') || '20', 10); // Default limit to 20
+        const cursorTimestamp = c.req.query('cursorTimestamp');
+        const cursorId = c.req.query('cursorId');
+        const paginatedResponse = await durableObjectStub.getMessages(limit, cursorTimestamp, cursorId);
+        return c.json({ success: true, data: paginatedResponse } satisfies ApiResponse<PaginatedMessagesResponse>);
     });
     app.post('/api/messages', async (c) => {
         try {
