@@ -102,22 +102,18 @@ export function HomePage(): JSX.Element {
     }
   };
   return (
-    <AppLayout
-      container
-      footer={
-        <footer className="absolute bottom-0 left-0 p-4 text-muted-foreground/80 text-sm rotate-90 transform-origin-top-left z-50">
-          <p>Built with ❤️ at Cloudflare</p>
-        </footer>
-      }
-    >
+    <AppLayout container>
       {/* The main content wrapper, constrained to max-w-3xl and centered, with flex column layout */}
-      <div className="max-w-3xl mx-auto w-full flex-grow flex flex-col relative space-y-6">
-        {/* Header - with dedicated vertical padding */}
-        <header className="text-center space-y-2 animate-fade-in py-8 md:py-10 lg:py-12 relative">
-          <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground leading-tight">
-            Unison
-          </h1>
+      <div className="max-w-3xl mx-auto w-full flex-grow flex flex-col space-y-6">
+        {/* Header - new single-row layout */}
+        <header className="flex items-center py-4 animate-fade-in relative">
+          <p className="text-muted-foreground/80 text-sm flex-shrink-0">Built with ❤️ at Cloudflare</p>
+          <div className="flex-grow text-center">
+            <h1 className="text-2xl font-bold text-foreground leading-tight">
+              Unison
+            </h1>
+          </div>
+          <ThemeToggle />
         </header>
         {/* Message List - now flex-grow and scrollable */}
         <section className="flex-grow overflow-y-auto space-y-6 p-4 border border-border rounded-lg">
