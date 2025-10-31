@@ -36,10 +36,10 @@ export function MessageCard({ message, isCurrentUser }: MessageCardProps): JSX.E
             : "bg-secondary text-foreground rounded-bl-none" // Default secondary background for others, rounded-bl-none for bubble shape
         )}
       >
-        <p className="text-base font-medium leading-relaxed text-pretty">
+        <p className="text-base text-foreground font-medium leading-relaxed text-pretty">
           {message.text}
         </p>
-        <p className={cn("text-xs text-muted-foreground mt-2", isCurrentUser ? "text-right" : "text-left")}> {/* Conditionally align timestamp */}
+        <p className={cn("text-sm text-muted-foreground mt-2", isCurrentUser ? "text-right" : "text-left")}> {/* Conditionally align timestamp */}
           {formattedTimestamp}
         </p>
       </div>

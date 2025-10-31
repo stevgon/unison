@@ -108,12 +108,12 @@ export function HomePage(): JSX.Element {
         {/* Header - with dedicated vertical padding */}
         <header className="text-center space-y-2 animate-fade-in py-8 md:py-10 lg:py-12 relative">
           <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6" />
-          <h1 className="text-4xl font-bold text-foreground leading-tight">
+          <h1 className="text-5xl md:text-6xl font-bold text-foreground leading-tight">
             Unison
           </h1>
         </header>
         {/* Message List - now flex-grow and scrollable */}
-        <section className="flex-grow overflow-y-auto space-y-6 px-4 sm:px-6 lg:px-8 py-4">
+        <section className="flex-grow overflow-y-auto space-y-6 px-4 sm:px-6 lg:px-8 py-4 border border-border rounded-lg">
           {isLoading && (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
