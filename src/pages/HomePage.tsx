@@ -149,7 +149,7 @@ export function HomePage(): JSX.Element {
     } finally {
       setIsPosting(false);
     }
-  }, [newMessageText, token, getToken, invalidateSession, fetchMessages]); // Dependencies on newMessageText, token, and auth functions
+  }, [newMessageText, token, getToken, invalidateSession]); // Dependencies on newMessageText, token, and auth functions
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault(); // Prevent new line
