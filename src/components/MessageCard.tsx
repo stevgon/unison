@@ -30,7 +30,7 @@ export function MessageCard({ message, isCurrentUser }: MessageCardProps): JSX.E
     >
       <div
         className={cn(
-          "p-3 rounded-xl shadow-sm max-w-[85%]", // Adjusted padding from p-4 to p-3
+          "p-3 rounded-lg shadow-sm max-w-[85%]", // Adjusted padding from p-4 to p-3, changed rounded-xl to rounded-lg
           isCurrentUser
             ? "bg-primary/10 text-foreground rounded-br-none" // Subtle background for current user, rounded-br-none for bubble shape
             : "bg-secondary text-foreground rounded-bl-none" // Default secondary background for others, rounded-bl-none for bubble shape
